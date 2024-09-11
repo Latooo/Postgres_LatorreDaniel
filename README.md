@@ -1,3 +1,586 @@
+# Jardineria DATABASE
+Consultas sobre una tabla
+
+1. Devuelve un listado con el código de oficina y la ciudad donde hay oficinas.
+
+SELECT codigo_oficina, ciudad 
+FROM oficina;
+
+![image](https://github.com/user-attachments/assets/71bb1e9d-d580-4832-bcca-a1424295b033)
+
+2. Devuelve un listado con la ciudad y el teléfono de las oficinas de España.
+
+SELECT ciudad, telefONo
+FROM oficina
+WHERE pais = 'España';
+
+![image](https://github.com/user-attachments/assets/6225cebc-a3b1-4abc-ab70-3dae83376312)
+
+4. Devuelve un listado con el nombre, apellidos y email de los empleados cuyo
+jefe tiene un código de jefe igual a 7
+
+SELECT nombre, apellido1,apellido2,email
+FROM empleado
+WHERE codigo_jefe=7;
+
+![image](https://github.com/user-attachments/assets/b2b50f03-f4df-4974-8d50-65acc3fc06ff)
+
+5. Devuelve el nombre del puesto, nombre, apellidos y email del jefe de la
+empresa.
+
+SELECT puesto,nombre,apellido1,apellido2,email
+FROM empleado
+WHERE codigo_jefe is null;
+
+![image](https://github.com/user-attachments/assets/8d171490-8fc2-4de6-b5a5-dc10dafd5221)
+
+7. Devuelve un listado con el nombre, apellidos y puesto de aquellos
+empleados que no sean representantes de ventas.
+
+SELECT nombre,apellido1,apellido2,puesto
+FROM empleado
+WHERE puesto <> 'Representante de Ventas';
+
+![image](https://github.com/user-attachments/assets/e707a12c-8ee1-4be6-b62c-bf2b06844f2d)
+
+8. Devuelve un listado con el código de cliente de aquellos clientes que
+realizaron algún pago en 2008. Tenga en cuenta que deberá eliminar
+aquellos códigos de cliente que aparezcan repetidos. Resuelva la consulta:
+• Utilizando la función YEAR de MySQL pero que sirva en postgresql.
+• Utilizando la función DATE_FORMAT de MySQL pero que sirva en postgresql.
+• Sin utilizar ninguna de las funciones anteriores.
+
+SELECT DISTINCT codigo_cliente
+FROM pago
+WHERE EXTRACT(YEAR FROM fecha_pago) = 2008;
+
+![image](https://github.com/user-attachments/assets/8ed1cdd2-0943-4632-bd95-c29ccda40661)
+
+9. Devuelve un listado con el código de pedido, código de cliente, fecha
+esperada y fecha de entrega de los pedidos que no han sido entregados a
+tiempo.
+
+SELECT codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega 
+FROM pedido 
+WHERE fecha_entrega > fecha_esperada;
+
+![image](https://github.com/user-attachments/assets/3f24c863-d5a5-4ef9-88d8-fae4c79e605f)
+
+10. Devuelve un listado con el código de pedido, código de cliente, fecha
+esperada y fecha de entrega de los pedidos cuya fecha de entrega ha sido al
+menos dos días antes de la fecha esperada.
+• Utilizando la función ADDDATE de MySQL pero que sirva en postgresql.
+• Utilizando la función DATEDIFF de MySQL pero que sirva en postgresql.
+• ¿Sería posible resolver esta consulta utilizando el operador de suma + o
+resta -?
+
+SELECT codigo_pedido, codigo_cliente, fecha_esperada, fecha_entrega
+FROM pedido
+WHERE fecha_entrega <= (fecha_esperada - INTERVAL '2 days');
+
+![image](https://github.com/user-attachments/assets/22451c7a-1864-4599-85b8-a346f8054a51)
+
+11. Devuelve un listado de todos los pedidos que fueron rechazados en 2009.
+
+SELECT * 
+FROM pedido
+WHERE EXTRACT (YEAR FROM fecha_entrega) = 2009;
+
+![image](https://github.com/user-attachments/assets/a70b821f-5b8c-4f13-b339-a2aa35dc09ca)
+
+12. Devuelve un listado de todos los pedidos que han sido entregados en el
+mes de enero de cualquier año.
+SELECT *
+FROM pedido
+WHERE EXTRACT(MONTH FROM fecha_entrega) = 1;
+
+![image](https://github.com/user-attachments/assets/a8619817-6376-4f80-abd6-be3fff1a8205)
+
+13. Devuelve un listado con todos los pagos que se realizaron en el
+año 2008 mediante Paypal. Ordene el resultado de mayor a menor.*/
+
+SELECT * 
+FROM pago 
+WHERE EXTRACT(YEAR FROM fecha_pago) = 2008 
+  AND forma_pago = 'PayPal' 
+ORDER BY total DESC;
+
+![image](https://github.com/user-attachments/assets/701f2acc-ef9b-48b7-b8ae-b38449577d6b)
+
+14. Devuelve un listado con todas las formas de pago que aparecen en la
+tabla pago. Tenga en cuenta que no deben aparecer formas de pago
+repetidas.
+
+SELECT DISTINCT forma_pago
+FROM pago;
+
+![image](https://github.com/user-attachments/assets/394eb309-944a-4400-98c4-ed49bd5c574e)
+
+15. Devuelve un listado con todos los productos que pertenecen a la
+gama Ornamentales y que tienen más de 100 unidades en stock. El listado
+deberá estar ordenado por su precio de venta, mostrando en primer lugar
+los de mayor precio.
+
+SELECT *
+FROM producto
+WHERE gama ='Ornamentales'
+AND cantidad_en_stock = 100
+ORDER BY precio_venta DESC;
+
+![image](https://github.com/user-attachments/assets/6687ef02-d710-4c28-a5f3-fa187a9b1d76)
+
+16. Devuelve un listado con todos los clientes que sean de la ciudad de Madrid y
+cuyo representante de ventas tenga el código de empleado 11 o 30.
+
+SELECT *
+FROM cliente
+WHERE ciudad = 'Madrid'
+AND codigo_empleado_rep_ventas IN (11, 30);
+
+![image](https://github.com/user-attachments/assets/6c59107b-6245-4ca7-a5c2-37ff0c77c870)
+
+# Consultas multitabla (Composición interna)
+
+1. Obtén un listado con el nombre de cada cliente y el nombre y apellido de su
+representante de ventas.
+
+SELECT cliente.nombre_cliente, empleado.nombre, empleado.apellido1, empleado.apellido2 
+FROM cliente
+INNER JOIN empleado ON cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado;
+
+![image](https://github.com/user-attachments/assets/0c4bcb9c-1c33-44f6-8a7c-85768565e702)
+
+2. Muestra el nombre de los clientes que hayan realizado pagos junto con el
+nombre de sus representantes de ventas.
+
+SELECT cliente.nombre_cliente, empleado.nombre, empleado.apellido1, empleado.apellido2 
+FROM cliente
+INNER JOIN pago ON cliente.codigo_cliente = pago.codigo_cliente
+INNER JOIN empleado ON cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado;
+
+![image](https://github.com/user-attachments/assets/adf197e1-aa2a-40ad-8069-946860312ec0)
+
+3. Devuelve el nombre de los clientes que han hecho pagos y el nombre de sus
+representantes junto con la ciudad de la oficina a la que pertenece el
+representante.
+
+SELECT cliente.nombre_cliente, empleado.nombre, empleado.apellido1, empleado.apellido2, oficina.ciudad
+FROM cliente
+INNER JOIN pago ON cliente.codigo_cliente = pago.codigo_cliente
+INNER JOIN empleado ON cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+INNER JOIN oficina ON empleado.codigo_oficina = oficina.codigo_oficina;
+
+![image](https://github.com/user-attachments/assets/04010b81-3818-4e99-a202-3af69448760c)
+
+4. Devuelve el nombre de los clientes que no hayan hecho pagos y el nombre
+de sus representantes junto con la ciudad de la oficina a la que pertenece el
+representante.
+
+SELECT cliente.nombre_cliente, empleado.nombre, empleado.apellido1, empleado.apellido2, oficina.ciudad
+FROM cliente
+LEFT JOIN pago ON cliente.codigo_cliente = pago.codigo_cliente
+INNER JOIN empleado ON cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+INNER JOIN oficina ON empleado.codigo_oficina = oficina.codigo_oficina
+WHERE pago.codigo_cliente IS NULL;
+
+![image](https://github.com/user-attachments/assets/63da9aeb-193d-4695-9a08-d62af176debb)
+
+5. Lista la dirección de las oficinas que tengan clientes en Fuenlabrada.*/
+
+SELECT DISTINCT oficina.linea_direcciON1, oficina.linea_direcciON2
+FROM cliente
+INNER JOIN empleado ON cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+INNER JOIN oficina ON empleado.codigo_oficina = oficina.codigo_oficina
+WHERE cliente.ciudad = 'Fuenlabrada';
+
+![image](https://github.com/user-attachments/assets/3c6d4b5e-812a-4a10-aa7f-fde9e2acce40)
+
+6. Devuelve el nombre de los clientes y el nombre de sus representantes junto
+con la ciudad de la oficina a la que pertenece el representante.
+
+SELECT cliente.nombre_cliente, empleado.nombre, empleado.apellido1, empleado.apellido2, oficina.ciudad
+FROM cliente
+INNER JOIN empleado ON cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+INNER JOIN oficina ON empleado.codigo_oficina = oficina.codigo_oficina;
+
+![image](https://github.com/user-attachments/assets/6d12ec0c-707b-4231-a68d-785e44a785f3)
+
+7. Devuelve un listado con el nombre de los empleados junto con el nombre
+de sus jefes.
+
+SELECT e1.nombre AS empleado_nombre, e1.apellido1 AS empleado_apellido1, e1.apellido2 AS empleado_apellido2,
+       e2.nombre AS jefe_nombre, e2.apellido1 AS jefe_apellido1, e2.apellido2 AS jefe_apellido2
+FROM empleado e1
+INNER JOIN empleado e2 ON e1.codigo_jefe = e2.codigo_empleado;
+
+![image](https://github.com/user-attachments/assets/0fb6c0f4-1c8b-44d0-8c77-22d234f7a8c5)
+
+8. Devuelve un listado que muestre el nombre de cada empleados, el nombre
+de su jefe y el nombre del jefe de sus jefe.
+
+SELECT e1.nombre AS empleado_nombre, e1.apellido1 AS empleado_apellido1, e1.apellido2 AS empleado_apellido2,
+       e2.nombre AS jefe_nombre, e2.apellido1 AS jefe_apellido1, e2.apellido2 AS jefe_apellido2,
+       e3.nombre AS jefe_del_jefe_nombre, e3.apellido1 AS jefe_del_jefe_apellido1, e3.apellido2 AS jefe_del_jefe_apellido2
+FROM empleado e1
+INNER JOIN empleado e2 ON e1.codigo_jefe = e2.codigo_empleado
+LEFT JOIN empleado e3 ON e2.codigo_jefe = e3.codigo_empleado;
+
+![image](https://github.com/user-attachments/assets/70fd45e2-41d5-43f9-a628-5d302aeac1a7)
+
+9. Devuelve el nombre de los clientes a los que no se les ha entregado a
+tiempo un pedido.
+
+SELECT DISTINCT cliente.nombre_cliente
+FROM cliente
+INNER JOIN pedido ON cliente.codigo_cliente = pedido.codigo_cliente
+WHERE pedido.fecha_entrega > pedido.fecha_esperada;
+
+![image](https://github.com/user-attachments/assets/cbfdfd8d-0248-4fc1-a686-424c43fcc052)
+
+10. Devuelve un listado de las diferentes gamas de producto que ha comprado
+cada cliente.
+
+SELECT DISTINCT cliente.nombre_cliente, gama_producto.gama
+FROM cliente
+INNER JOIN pedido ON cliente.codigo_cliente = pedido.codigo_cliente
+INNER JOIN detalle_pedido ON pedido.codigo_pedido = detalle_pedido.codigo_pedido
+INNER JOIN producto ON detalle_pedido.codigo_producto = producto.codigo_producto
+INNER JOIN gama_producto ON producto.gama = gama_producto.gama;
+
+![image](https://github.com/user-attachments/assets/3ab84ec9-fb9a-481c-a8a2-bafac46de7a5)
+
+# Consultas multitabla (Composición externa)
+Resuelva todas las consultas utilizando las cláusulas LEFT JOIN, RIGHT JOIN, NATURAL
+LEFT JOIN y NATURAL RIGHT JOIN.
+
+1. Devuelve un listado que muestre solamente los clientes que no han
+realizado ningún pago.
+
+SELECT c.*
+FROM cliente c
+LEFT JOIN pago p ON c.codigo_cliente = p.codigo_cliente
+WHERE p.codigo_cliente IS NULL;
+
+![image](https://github.com/user-attachments/assets/dd7444fd-c44e-423e-8a04-7b7b23c42349)
+
+2. Devuelve un listado que muestre solamente los clientes que no han
+realizado ningún pedido.
+
+SELECT c.*
+FROM cliente c
+LEFT JOIN pedido pd ON c.codigo_cliente = pd.codigo_cliente
+WHERE pd.codigo_pedido IS NULL;
+
+![image](https://github.com/user-attachments/assets/27f42d5f-606f-43fe-986f-412bded13fa8)
+
+3. Devuelve un listado que muestre los clientes que no han realizado ningún
+pago y los que no han realizado ningún pedido.
+
+SELECT c.*
+FROM cliente c
+LEFT JOIN pago p ON c.codigo_cliente = p.codigo_cliente
+LEFT JOIN pedido pd ON c.codigo_cliente = pd.codigo_cliente
+WHERE p.codigo_cliente IS NULL AND pd.codigo_pedido IS NULL;
+
+![image](https://github.com/user-attachments/assets/1a81180e-0f94-46fa-b41c-f1a4de7fe761)
+
+4. Devuelve un listado que muestre solamente los empleados que no tienen
+una oficina asociada.
+
+SELECT e.*
+FROM empleado e
+LEFT JOIN oficina o ON e.codigo_oficina = o.codigo_oficina
+WHERE o.codigo_oficina IS NULL;
+
+![image](https://github.com/user-attachments/assets/d558c8f9-3b54-45bc-a2b7-0853eb64fc14)
+
+5. Devuelve un listado que muestre solamente los empleados que no tienen un
+cliente asociado.
+
+SELECT e.*
+FROM empleado e
+LEFT JOIN cliente c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+WHERE c.codigo_cliente IS NULL;
+
+![image](https://github.com/user-attachments/assets/ed57418b-d727-4a0b-ad33-3463530c5f72)
+
+6. Devuelve un listado que muestre solamente los empleados que no tienen un
+cliente asociado junto con los datos de la oficina donde trabajan.
+
+SELECT e.*, o.*
+FROM empleado e
+LEFT JOIN cliente c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+LEFT JOIN oficina o ON e.codigo_oficina = o.codigo_oficina
+WHERE c.codigo_cliente IS NULL;
+
+![image](https://github.com/user-attachments/assets/2bdd314d-31b4-427b-8dda-ef8c97e1c6fe)
+
+7. Devuelve un listado que muestre los empleados que no tienen una oficina
+asociada y los que no tienen un cliente asociado.
+
+SELECT e.*
+FROM empleado e
+LEFT JOIN oficina o ON e.codigo_oficina = o.codigo_oficina
+LEFT JOIN cliente c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+WHERE o.codigo_oficina IS NULL OR c.codigo_cliente IS NULL;
+
+![image](https://github.com/user-attachments/assets/a174fd3e-ee50-426e-9da8-11007c1776b4)
+
+8. Devuelve un listado de los productos que nunca han aparecido en un
+pedido.
+
+SELECT p.*
+FROM producto p
+LEFT JOIN detalle_pedido dp ON p.codigo_producto = dp.codigo_producto
+WHERE dp.codigo_producto IS NULL; 
+
+![image](https://github.com/user-attachments/assets/825ded08-4989-40f0-815d-75664d2cb3c5)
+
+9. Devuelve un listado de los productos que nunca han aparecido en un
+pedido. El resultado debe mostrar el nombre, la descripción y la imagen del
+producto.
+
+SELECT 
+    p.nombre, 
+    p.descripcion, 
+    g.imagen
+FROM producto p
+LEFT JOIN detalle_pedido dp ON p.codigo_producto = dp.codigo_producto
+LEFT JOIN gama_producto g ON p.gama = g.gama
+WHERE dp.codigo_producto IS NULL;
+
+![image](https://github.com/user-attachments/assets/1ff6c077-cfbd-4f9b-a704-98539deae44b)
+
+10. Devuelve las oficinas donde no trabajan ninguno de los empleados que
+hayan sido los representantes de ventas de algún cliente que haya realizado
+la compra de algún producto de la gama Frutales.
+
+SELECT o.*
+FROM oficina o
+LEFT JOIN empleado e ON o.codigo_oficina = e.codigo_oficina
+LEFT JOIN cliente c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+LEFT JOIN pedido p ON c.codigo_cliente = p.codigo_cliente
+LEFT JOIN detalle_pedido dp ON p.codigo_pedido = dp.codigo_pedido
+LEFT JOIN producto pr ON dp.codigo_producto = pr.codigo_producto
+LEFT JOIN gama_producto g ON pr.gama = g.gama
+WHERE g.gama = 'Frutales'
+  AND e.codigo_empleado IS null;
+
+  ![image](https://github.com/user-attachments/assets/fcc80e78-0976-48c3-a3bf-bc5e32fb7c17)
+
+11. Devuelve un listado con los clientes que han realizado algún pedido pero no
+han realizado ningún pago.
+
+SELECT c.*
+FROM cliente c
+INNER JOIN pedido p ON c.codigo_cliente = p.codigo_cliente
+LEFT JOIN pago pa ON c.codigo_cliente = pa.codigo_cliente
+WHERE pa.codigo_cliente IS NULL;
+
+![image](https://github.com/user-attachments/assets/a3d7b928-1072-408a-8018-3afaf7af85dd)
+
+12. Devuelve un listado con los datos de los empleados que no tienen clientes
+asociados y el nombre de su jefe asociado.
+
+SELECT e.*, j.nombre AS nombre_jefe, j.apellido1 AS apellido1_jefe, j.apellido2 AS apellido2_jefe
+FROM empleado e
+LEFT JOIN cliente c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+LEFT JOIN empleado j ON e.codigo_jefe = j.codigo_empleado
+WHERE c.codigo_cliente IS NULL;
+
+![image](https://github.com/user-attachments/assets/63ea8bdd-ee33-4670-a88e-cde3f07166c6)
+
+# Consultas resumen
+1. ¿Cuántos empleados hay en la compañía?
+
+SELECT COUNT(*) AS total_empleados
+FROM empleado;
+
+![image](https://github.com/user-attachments/assets/e3ea4dd8-15a9-47bf-a4a6-7d5620a8e78e)
+
+2. ¿Cuántos clientes tiene cada país?
+
+SELECT pais, COUNT(*) AS total_clientes
+FROM cliente
+GROUP BY pais;
+
+![image](https://github.com/user-attachments/assets/d574928a-867b-4041-8543-be39333f6a65)
+
+3. ¿Cuál fue el pago medio en 2009?
+
+SELECT AVG(total) AS pago_medio
+FROM pago
+WHERE EXTRACT(YEAR FROM fecha_pago) = 2009;
+
+![image](https://github.com/user-attachments/assets/5fd2afce-6998-42d9-abcb-5a93c04338ab)
+
+4. ¿Cuántos pedidos hay en cada estado? Ordena el resultado de forma
+descendente por el número de pedidos.
+
+SELECT estado, COUNT(*) AS total_pedidos
+FROM pedido
+GROUP BY estado
+ORDER BY total_pedidos DESC;
+
+![image](https://github.com/user-attachments/assets/46c161c6-1358-4b74-b638-60095de09b2b)
+
+5. Calcula el precio de venta del producto más caro y más barato en una
+misma consulta.
+
+SELECT MAX(precio_venta) AS precio_maximo, MIN(precio_venta) AS precio_minimo
+FROM producto;
+![image](https://github.com/user-attachments/assets/ff7364eb-8d50-4dc4-ac41-8564ece3ac18)
+
+6. Calcula el número de clientes que tiene la empresa.
+
+SELECT COUNT(*) AS total_clientes
+FROM cliente;
+
+![image](https://github.com/user-attachments/assets/0d376b13-66ba-496a-8e38-8584f0699649)
+
+7. ¿Cuántos clientes existen con domicilio en la ciudad de Madrid?
+
+SELECT COUNT(*) AS total_clientes
+FROM cliente
+WHERE ciudad = 'Madrid';
+
+![image](https://github.com/user-attachments/assets/ad20aa84-18d5-4030-8c06-deaa06e584f4)
+
+8. ¿Calcula cuántos clientes tiene cada una de las ciudades que empiezan
+por M?
+
+SELECT ciudad, COUNT(*) AS total_clientes
+FROM cliente
+WHERE ciudad LIKE 'M%'
+GROUP BY ciudad;
+
+![image](https://github.com/user-attachments/assets/c239a26f-40cb-4bf3-abbc-3a83f2a84f1b)
+
+9. Devuelve el nombre de los representantes de ventas y el número de clientes
+al que atiende cada uno.
+
+SELECT e.nombre, e.apellido1, COUNT(c.codigo_cliente) AS total_clientes
+FROM empleado e
+LEFT JOIN cliente c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+GROUP BY e.codigo_empleado, e.nombre, e.apellido1;
+
+![image](https://github.com/user-attachments/assets/4b096d83-a6bf-4d28-b7a7-f6dc7c0c8526)
+
+10. Calcula el número de clientes que no tiene asignado representante de
+ventas.
+
+SELECT COUNT(*) AS total_clientes_sin_representante
+FROM cliente
+WHERE codigo_empleado_rep_ventas IS NULL;
+
+![image](https://github.com/user-attachments/assets/cd9d021f-5751-49b1-ac4b-ab32428e892d)
+
+11. Calcula la fecha del primer y último pago realizado por cada uno de los
+clientes. El listado deberá mostrar el nombre y los apellidos de cada cliente.
+
+SELECT d.codigo_pedido, COUNT(DISTINCT d.codigo_producto) AS num_productos
+FROM detalle_pedido d
+GROUP BY d.codigo_pedido;
+
+![image](https://github.com/user-attachments/assets/fe2e034f-fe16-443f-9c41-b2b3c2e7a2f5)
+
+12. Calcula el número de productos diferentes que hay en cada uno de los
+pedidos.
+
+SELECT d.codigo_pedido, COUNT(DISTINCT d.codigo_producto) AS num_productos
+FROM detalle_pedido d
+GROUP BY d.codigo_pedido;
+
+![image](https://github.com/user-attachments/assets/89174897-0e39-455a-aa80-88ee4c48c8b8)
+
+13. Calcula la suma de la cantidad total de todos los productos que aparecen en
+cada uno de los pedidos.
+
+SELECT d.codigo_pedido, SUM(d.cantidad) AS cantidad_total
+FROM detalle_pedido d
+GROUP BY d.codigo_pedido;
+
+![image](https://github.com/user-attachments/assets/1dae4f2b-3dd1-4234-9d1e-895a208e9ebb)
+
+14. Devuelve un listado de los 20 productos más vendidos y el número total de
+unidades que se han vendido de cada uno. El listado deberá estar ordenado
+por el número total de unidades vendidas.
+
+SELECT d.codigo_producto, p.nombre, SUM(d.cantidad) AS unidades_vendidas
+FROM detalle_pedido d
+INNER JOIN producto p ON d.codigo_producto = p.codigo_producto
+GROUP BY d.codigo_producto, p.nombre
+ORDER BY unidades_vendidas DESC
+LIMIT 20;
+
+![image](https://github.com/user-attachments/assets/57a7438c-9f9a-4731-ac13-cb373c99ec5e)
+
+15. La facturación que ha tenido la empresa en toda la historia, indicando la
+base imponible, el IVA y el total facturado. La base imponible se calcula
+sumando el coste del producto por el número de unidades vendidas de la
+tabla detalle_pedido. El IVA es el 21 % de la base imponible, y el total la
+suma de los dos campos anteriores.
+
+SELECT
+    SUM(dp.cantidad * dp.precio_unidad) AS base_imponible,
+    SUM(dp.cantidad * dp.precio_unidad * 0.21) AS IVA,
+    SUM(dp.cantidad * dp.precio_unidad * 1.21) AS total_facturado
+FROM detalle_pedido dp;
+
+![image](https://github.com/user-attachments/assets/1c826851-a27a-4357-8ff1-26e0922522db)
+
+16. La misma información que en la pregunta anterior, pero agrupada por
+código de producto.
+
+SELECT
+    dp.codigo_producto,
+    SUM(dp.cantidad * dp.precio_unidad) AS base_imponible,
+    SUM(dp.cantidad * dp.precio_unidad * 0.21) AS IVA,
+    SUM(dp.cantidad * dp.precio_unidad * 1.21) AS total_facturado
+FROM detalle_pedido dp
+
+![image](https://github.com/user-attachments/assets/816edeb4-908f-44b2-bce4-888cb3034de7)
+
+17. La misma información que en la pregunta anterior, pero agrupada por
+código de producto filtrada por los códigos que empiecen por OR.
+
+SELECT
+    dp.codigo_producto,
+    SUM(dp.cantidad * dp.precio_unidad) AS base_imponible,
+    SUM(dp.cantidad * dp.precio_unidad * 0.21) AS IVA,
+    SUM(dp.cantidad * dp.precio_unidad * 1.21) AS total_facturado
+FROM detalle_pedido dp
+INNER JOIN producto p ON dp.codigo_producto = p.codigo_producto
+WHERE p.codigo_producto LIKE 'OR%'
+GROUP BY dp.codigo_producto;
+
+![image](https://github.com/user-attachments/assets/15df5023-554e-488a-aa45-3f2259b493e7)
+
+18. Lista las ventas totales de los productos que hayan facturado más de 3000
+euros. Se mostrará el nombre, unidades vendidas, total facturado y total
+facturado con impuestos (21% IVA).
+
+SELECT
+    p.nombre,
+    SUM(dp.cantidad) AS unidades_vendidas,
+    SUM(dp.cantidad * dp.precio_unidad) AS total_facturado,
+    SUM(dp.cantidad * dp.precio_unidad * 1.21) AS total_facturado_con_IVA
+FROM detalle_pedido dp
+INNER JOIN producto p ON dp.codigo_producto = p.codigo_producto
+GROUP BY p.nombre
+HAVING SUM(dp.cantidad * dp.precio_unidad) > 3000;
+
+![image](https://github.com/user-attachments/assets/ffca043a-2f10-44d8-bb47-a3e6e028110a)
+
+19. Muestre la suma total de todos los pagos que se realizaron para cada uno
+de los años que aparecen en la tabla pagos.
+
+SELECT EXTRACT(YEAR FROM fecha_pago) AS año, SUM(total) AS suma_pagos
+FROM pago
+GROUP BY EXTRACT(YEAR FROM fecha_pago);
+
+![image](https://github.com/user-attachments/assets/3aebf9c1-8723-4fb3-9cb3-f2aa10d38e85)
+
 Subconsultas
 Con operadores básicos de comparación
 1. Devuelve el nombre del cliente con mayor límite de crédito.
