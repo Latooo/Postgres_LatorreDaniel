@@ -14,10 +14,15 @@ SELECT nombre, apellido1, apellido2
 FROM alumno
 WHERE telefono IS NULL;
 
+![image](https://github.com/user-attachments/assets/5e6c4920-e62c-4a58-ac7f-a3aca17013d4)
+
 -- 3.Devuelve el listado de los alumnos que nacieron en 1999.
 SELECT nombre, apellido1, apellido2
 FROM alumno
 WHERE EXTRACT(YEAR FROM fecha_nacimiento) = 1999;
+
+![image](https://github.com/user-attachments/assets/8b7ed6f4-2f16-4df4-89e2-85296f7018bb)
+
 
 -- 4.Devuelve el listado de profesores que no han dado de alta su número de
 -- teléfono en la base de datos y además su nif termina en K.
