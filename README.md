@@ -1,3 +1,379 @@
+--Subconsultas
+--Con operadores básicos de comparación
+--1. Devuelve el nombre del cliente con mayor límite de crédito.
+
+SELECT nombre_cliente
+FROM cliente
+WHERE limite_credito = (SELECT MAX(limite_credito) FROM cliente);
+
+![image](https://github.com/user-attachments/assets/dcd9bf67-6521-48ff-83fa-6603cfa99b9a)
+
+
+--2. Devuelve el nombre del producto que tenga el precio de venta más caro.
+
+SELECT nombre
+FROM producto
+WHERE precio_venta = (SELECT MAX(precio_venta) FROM producto);
+
+![image](https://github.com/user-attachments/assets/5b96c406-6c7f-422a-bdbf-568622a3370c)
+
+--3. Devuelve el nombre del producto del que se han vendido más unidades.
+--(Tenga en cuenta que tendrá que calcular cuál es el número total de
+--unidades que se han vendido de cada producto a partir de los datos de la
+--tabla detalle_pedido)
+
+SELECT p.nombre
+FROM producto p
+JOIN detalle_pedido dp ON p.codigo_producto = dp.codigo_producto
+GROUP BY p.nombre
+ORDER BY SUM(dp.cantidad) DESC
+LIMIT 1;
+
+![image](https://github.com/user-attachments/assets/7f1c28c6-5677-45dd-a47c-228e3a5842e3)
+
+--4. Los clientes cuyo límite de crédito sea mayor que los pagos que haya
+--realizado. (Sin utilizar INNER JOIN).
+
+SELECT nombre_cliente
+FROM cliente
+WHERE limite_credito > ALL (
+    SELECT total
+    FROM pago
+    WHERE cliente.codigo_cliente = pago.codigo_cliente
+);
+
+![image](https://github.com/user-attachments/assets/938bb866-1184-4612-a651-d1b404422ad7)
+
+
+--5. Devuelve el producto que más unidades tiene en stock.
+
+SELECT nombre
+FROM producto
+WHERE cantidad_en_stock = (SELECT MAX(cantidad_en_stock) FROM producto);
+
+![image](https://github.com/user-attachments/assets/087204a2-6c87-457e-b59f-b972c4786877)
+
+
+--6. Devuelve el producto que menos unidades tiene en stock.
+
+SELECT nombre
+FROM producto
+WHERE cantidad_en_stock = (SELECT MIN(cantidad_en_stock) FROM producto);
+
+![image](https://github.com/user-attachments/assets/5aaafbac-6562-48d8-8855-c6ddcc2db02a)
+
+
+--7. Devuelve el nombre, los apellidos y el email de los empleados que están a
+--cargo de Alberto Soria.
+
+SELECT e.nombre, e.apellido1, e.email
+FROM empleado e
+WHERE e.codigo_jefe = (
+    SELECT codigo_empleado
+    FROM empleado
+    WHERE nombre = 'Alberto' AND apellido1 = 'Soria'
+);
+
+![image](https://github.com/user-attachments/assets/f2f018b5-0ec5-4615-bbff-deff43d6bddf)
+
+
+--Subconsultas con ALL y any
+
+--8. Devuelve el nombre del cliente con mayor límite de crédito.
+
+SELECT nombre_cliente
+FROM cliente
+WHERE limite_credito = ANY (SELECT MAX(limite_credito) FROM cliente);
+
+![image](https://github.com/user-attachments/assets/c18ffd73-2eaa-4141-af9c-c80491455009)
+
+
+--9. Devuelve el nombre del producto que tenga el precio de venta más caro.
+
+SELECT nombre
+FROM producto
+WHERE precio_venta = ANY (SELECT MAX(precio_venta) FROM producto);
+
+![image](https://github.com/user-attachments/assets/16bbb49f-00b9-47bd-9344-36fe0dba0b92)
+
+
+--10. Devuelve el producto que menos unidades tiene en stock.
+
+SELECT nombre
+FROM producto
+WHERE cantidad_en_stock = ANY (SELECT MIN(cantidad_en_stock) FROM producto);
+
+![image](https://github.com/user-attachments/assets/bcc3d53c-19a9-4bbf-842f-4d58d72cd09e)
+
+
+--Subconsultas con IN y NOT in
+
+--11. Devuelve el nombre, apellido1 y cargo de los empleados que no
+--representen a ningún cliente.
+
+SELECT nombre, apellido1, puesto
+FROM empleado
+WHERE codigo_empleado NOT IN (
+    SELECT DISTINCT codigo_empleado_rep_ventas
+    FROM cliente
+    WHERE codigo_empleado_rep_ventas IS NOT NULL
+);
+![image](https://github.com/user-attachments/assets/c33f0f71-f215-4601-942f-fd1fbc9bcd34)
+
+
+--12. Devuelve un listado que muestre solamente los clientes que no han
+--realizado ningún pago.
+
+SELECT nombre_cliente
+FROM cliente
+WHERE codigo_cliente NOT IN (
+    SELECT DISTINCT codigo_cliente
+    FROM pago
+);
+
+![image](https://github.com/user-attachments/assets/91d2a6fa-ef03-43cc-ae32-1b352270271b)
+
+
+--13. Devuelve un listado que muestre solamente los clientes que sí han realizado
+--algún pago.
+
+SELECT nombre_cliente
+FROM cliente
+WHERE codigo_cliente IN (
+    SELECT DISTINCT codigo_cliente
+    FROM pago
+);
+
+![image](https://github.com/user-attachments/assets/70f18e98-9b26-4eae-8835-b36a39aeffd7)
+
+
+--14. Devuelve un listado de los productos que nunca han aparecido en un
+--pedido.
+
+SELECT nombre
+FROM producto
+WHERE codigo_producto NOT IN (
+    SELECT DISTINCT codigo_producto
+    FROM detalle_pedido
+);
+
+![image](https://github.com/user-attachments/assets/30e3f26f-7094-4d95-9a26-0212fe0b5e76)
+
+
+--15. Devuelve el nombre, apellidos, puesto y teléfono de la oficina de aquellos
+--empleados que no sean representante de ventas de ningún cliente.
+
+SELECT e.nombre, e.apellido1, e.puesto, o.telefono
+FROM empleado e
+JOIN oficina o ON e.codigo_oficina = o.codigo_oficina
+WHERE e.codigo_empleado NOT IN (
+    SELECT DISTINCT codigo_empleado_rep_ventas
+    FROM cliente
+    WHERE codigo_empleado_rep_ventas IS NOT NULL
+);
+
+![image](https://github.com/user-attachments/assets/ccd93fd8-d3de-4e06-bfc0-64251a44df86)
+
+
+--16. Devuelve las oficinas donde no trabajan ninguno de los empleados que
+--hayan sido los representantes de ventas de algún cliente que haya realizado
+--la compra de algún producto de la gama Frutales.
+
+SELECT DISTINCT o.ciudad
+FROM oficina o
+WHERE o.codigo_oficina NOT IN (
+    SELECT e.codigo_oficina
+    FROM empleado e
+    WHERE e.codigo_empleado IN (
+        SELECT c.codigo_empleado_rep_ventas
+        FROM cliente c
+        JOIN pedido p ON c.codigo_cliente = p.codigo_cliente
+        JOIN detalle_pedido dp ON p.codigo_pedido = dp.codigo_pedido
+        JOIN producto prod ON dp.codigo_producto = prod.codigo_producto
+        WHERE prod.gama = 'Frutales'
+    )
+);
+
+![image](https://github.com/user-attachments/assets/4048547c-d902-4eeb-b0d8-b93be8862bfd)
+
+
+--17. Devuelve un listado con los clientes que han realizado algún pedido pero no
+--han realizado ningún pago.
+
+SELECT DISTINCT c.nombre_cliente
+FROM cliente c
+WHERE c.codigo_cliente IN (
+    SELECT DISTINCT p.codigo_cliente
+    FROM pedido p
+)
+AND c.codigo_cliente NOT IN (
+    SELECT DISTINCT codigo_cliente
+    FROM pago
+);
+
+![image](https://github.com/user-attachments/assets/985863f4-c5a5-4fd3-9419-6ecacde5f506)
+
+
+--Subconsultas con EXISTS y NOT exists
+--18. Devuelve un listado que muestre solamente los clientes que no han
+--realizado ningún pago.
+
+SELECT nombre_cliente
+FROM cliente c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM pago p
+    WHERE p.codigo_cliente = c.codigo_cliente
+);
+
+![image](https://github.com/user-attachments/assets/0cbec486-f805-4c49-95b1-71781c9eda51)
+
+
+--19. Devuelve un listado que muestre solamente los clientes que sí han realizado
+--algún pago.
+
+SELECT nombre_cliente
+FROM cliente c
+WHERE EXISTS (
+    SELECT 1
+    FROM pago p
+    WHERE p.codigo_cliente = c.codigo_cliente
+);
+
+![image](https://github.com/user-attachments/assets/86f5f8b8-32a9-4623-aa49-efb8feb33b13)
+
+
+--20. Devuelve un listado de los productos que nunca han aparecido en un
+--pedido.
+
+SELECT nombre
+FROM producto p
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM detalle_pedido dp
+    WHERE dp.codigo_producto = p.codigo_producto
+);
+
+![image](https://github.com/user-attachments/assets/cae9294b-1675-4727-b0e7-2e5d6fa805ea)
+
+
+--21. Devuelve un listado de los productos que han aparecido en un pedido
+--alguna vez.
+
+SELECT DISTINCT p.nombre
+FROM producto p
+WHERE EXISTS (
+    SELECT 1
+    FROM detalle_pedido dp
+    WHERE dp.codigo_producto = p.codigo_producto
+);
+
+![image](https://github.com/user-attachments/assets/d8fbe6be-1d59-455c-b6b5-9eacf4160d88)
+
+
+--Subconsultas correlacionadas
+--Consultas variadas
+
+--1. Devuelve el listado de clientes indicando el nombre del cliente y cuántos
+--pedidos ha realizado. Tenga en cuenta que pueden existir clientes que no
+--han realizado ningún pedido.
+
+SELECT c.nombre_cliente,
+       (SELECT COUNT(*)
+        FROM pedido p
+        WHERE p.codigo_cliente = c.codigo_cliente) AS total_pedidos
+FROM cliente c;
+
+![image](https://github.com/user-attachments/assets/d8f43395-700d-4bb6-aded-c20fd5dd11be)
+
+
+--2. Devuelve un listado con los nombres de los clientes y el total pagado por
+--cada uno de ellos. Tenga en cuenta que pueden existir clientes que no han
+--realizado ningún pago.
+
+SELECT c.nombre_cliente,
+       COALESCE((
+           SELECT SUM(p.total)
+           FROM pago p
+           WHERE p.codigo_cliente = c.codigo_cliente
+       ), 0) AS total_pagado
+FROM cliente c;
+![image](https://github.com/user-attachments/assets/bb65d995-80f0-4178-b50d-9766e7789e19)
+
+
+--3. Devuelve el nombre de los clientes que hayan hecho pedidos en 2008
+--ordenados alfabéticamente de menor a mayor.
+
+SELECT DISTINCT c.nombre_cliente
+FROM cliente c
+JOIN pedido p ON c.codigo_cliente = p.codigo_cliente
+WHERE EXTRACT(YEAR FROM p.fecha_pedido) = 2008
+ORDER BY c.nombre_cliente;
+
+![image](https://github.com/user-attachments/assets/315f8ac0-46d6-4283-926d-d85d5737beed)
+
+
+--4. Devuelve el nombre del cliente, el nombre y primer apellido de su
+--representante de ventas y el número de teléfono de la oficina del
+--representante de ventas, de aquellos clientes que no hayan realizado ningún
+--pago.
+
+SELECT c.nombre_cliente,
+       e.nombre,
+       e.apellido1,
+       o.telefono
+FROM cliente c
+JOIN empleado e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
+JOIN oficina o ON e.codigo_oficina = o.codigo_oficina
+WHERE c.codigo_cliente NOT IN (
+    SELECT DISTINCT codigo_cliente
+    FROM pago
+);
+
+![image](https://github.com/user-attachments/assets/dcb471b9-f445-4c96-afab-bf4397f14bb1)
+
+
+--5. Devuelve el listado de clientes donde aparezca el nombre del cliente, el
+--nombre y primer apellido de su representante de ventas y la ciudad donde
+--está su oficina.
+
+SELECT c.nombre_cliente,
+       e.nombre,
+       e.apellido1,
+       o.ciudad
+FROM cliente c
+JOIN empleado e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
+JOIN oficina o ON e.codigo_oficina = o.codigo_oficina;
+
+![image](https://github.com/user-attachments/assets/0cb3a000-de86-450e-8598-48295f8382c1)
+
+
+--6. Devuelve el nombre, apellidos, puesto y teléfono de la oficina de aquellos
+--empleados que no sean representante de ventas de ningún cliente.
+
+SELECT e.nombre, e.apellido1, e.puesto, o.telefono
+FROM empleado e
+JOIN oficina o ON e.codigo_oficina = o.codigo_oficina
+WHERE e.codigo_empleado NOT IN (
+    SELECT DISTINCT codigo_empleado_rep_ventas
+    FROM cliente
+    WHERE codigo_empleado_rep_ventas IS NOT NULL
+);
+
+![image](https://github.com/user-attachments/assets/c3535624-975d-4d7f-9128-ea001e0eb1a5)
+
+
+--7. Devuelve un listado indicando todas las ciudades donde hay oficinas y el
+--número de empleados que tiene.
+
+SELECT o.ciudad, COUNT(e.codigo_empleado) AS total_empleados
+FROM oficina o
+LEFT JOIN empleado e ON o.codigo_oficina = e.codigo_oficina
+GROUP BY o.ciudad;
+
+![image](https://github.com/user-attachments/assets/b8da0d8e-803c-4c4a-91c7-f75f5617a2b5)
+
+
 ## Colegio DATABASE
 
 -- 1.Devuelve un listado con el primer apellido, segundo apellido y el nombre de
